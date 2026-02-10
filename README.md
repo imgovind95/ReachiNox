@@ -150,5 +150,5 @@ The system is designed for easy deployment on **Render** (Backend) and **Vercel*
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for ReachInbox Assessment</sub>
+  <sub>Built for ReachInbox Assessment</sub>
 </div>
