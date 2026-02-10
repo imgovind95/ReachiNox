@@ -63,7 +63,7 @@ Your project is configured with the following secure environment files (do not c
 -   `client/.env.local`: Contains `NEXT_PUBLIC_API_URL`, `NEXTAUTH_URL` and Google Credentials.
 
 ## 📝 Ownership
--   **Author**: User
--   **Repository**: [Your GitHub Repo]
+-   **Author**: Govind Kumar
+-   **Repository**: https://github.com/imgovind95/ReachINbox
 
-This project is now fully configured, personalized, and ready for further feature development!
+
