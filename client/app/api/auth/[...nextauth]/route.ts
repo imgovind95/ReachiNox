@@ -65,6 +65,7 @@ const handler = NextAuth({
             return true;
         },
         async jwt({ token, user, account }) {
+            // 1. Initial Sign In
             if (user) {
                 token.email = user.email;
                 token.name = user.name;
@@ -74,10 +75,14 @@ const handler = NextAuth({
                 }
             }
 
-            if (!token.backendId && token.email && account?.provider === 'google') {
+            // 2. Sync Google User (if backendId missing) OR Fallback Sync (if name/avatar missing)
+            const isNameMissing = !token.name || token.name === 'undefined';
+            const isPictureMissing = !token.picture || token.picture === 'undefined';
+            const needsSync = !token.backendId || (token.email && (isNameMissing || isPictureMissing));
+
+            if (needsSync && token.email) {
                 try {
                     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-                    console.log("Syncing Google user with API URL:", apiUrl);
 
                     const response = await fetch(`${apiUrl}/api/auth/google`, {
                         method: 'POST',
@@ -86,17 +91,19 @@ const handler = NextAuth({
                             email: token.email,
                             name: token.name,
                             avatar: token.picture,
-                            googleId: account.providerAccountId,
+                            googleId: account?.providerAccountId || `dummy-${token.email}`,
                         }),
                     });
 
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.user?.id) {
-                            token.backendId = data.user.id;
+                        if (data.user) {
+                            if (data.user.id) token.backendId = data.user.id;
+                            if (data.user.name) token.name = data.user.name;
+                            if (data.user.avatar) token.picture = data.user.avatar;
                         }
                     } else {
-                        console.error("Google Sync failed:", response.status, await response.text());
+                        console.error("User Sync failed:", response.status);
                     }
                 } catch (error) {
                     console.error("Backend Sync Error:", error);
@@ -116,21 +123,18 @@ const handler = NextAuth({
             return session;
         },
         async redirect({ url, baseUrl }) {
-            // 1. Explicit Dashboard Redirection (Most Important)
+            // 1. Explicit Dashboard Redirection
             if (url.includes("/dashboard")) {
                 return `${baseUrl}/dashboard`;
             }
-
-            // 2. If url is root (login page) and we are redirecting (implies login success), go to dashboard
+            // 2. If url is root (login page) and we are redirecting, go to dashboard
             if (url === baseUrl || url === `${baseUrl}/`) {
                 return `${baseUrl}/dashboard`;
             }
-
             // 3. Internal relative paths
             if (url.startsWith("/")) {
                 return `${baseUrl}${url}`;
             }
-
             // 4. Default fallback
             return `${baseUrl}/dashboard`;
         }
