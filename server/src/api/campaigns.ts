@@ -140,6 +140,7 @@ campaignRouter.get('/job/:jobId', async (req, res) => {
 // Retrieve User Campaigns (Generic Parameter Route - MOVED DOWN)
 campaignRouter.get('/:userId', async (req, res) => {
     const { userId } = req.params;
+    console.log(`[DEBUG] Fetching campaigns for userId: ${userId}`);
 
     if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
@@ -150,16 +151,26 @@ campaignRouter.get('/:userId', async (req, res) => {
         // const userExists = await prisma.user.findUnique({ where: { id: userId } });
         // if (!userExists) return res.status(404).json({ error: "User not found" });
 
+        console.log(`[DEBUG] Executing Prisma Query for ${userId}...`);
         const userCampaigns = await prisma.emailJob.findMany({
             where: { userId },
             orderBy: { scheduledAt: 'desc' }
         });
+        console.log(`[DEBUG] Found ${userCampaigns.length} campaigns.`);
         res.json(userCampaigns);
     } catch (err: any) {
-        console.error("Fetch Campaigns Error:", err);
+        console.error("[CRITICAL] Fetch Campaigns Error:", err);
+
+        // Return 200 with empty array if it's a "User not found" foreign key error to prevent frontend crash
+        if (err.code === 'P2025' || err.message?.includes('Foreign key constraint failed')) {
+            console.warn("[WARN] User not found or FK constraint failed. Returning empty list.");
+            return res.json([]);
+        }
+
         res.status(500).json({
             error: "Failed to fetch campaigns",
-            details: err instanceof Error ? err.message : String(err)
+            details: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined
         });
     }
 });
