@@ -34,9 +34,9 @@ export default function SentPage() {
               subject: job.subject,
               body: job.body,
               status: job.status === 'FAILED' ? 'failed' : (job.status === 'COMPLETED' ? 'sent' : 'sending'),
-              date: job.status === 'COMPLETED'
-                ? (job.sentAt ? new Date(job.sentAt).toLocaleString() : 'Sent')
-                : (job.status === 'FAILED' ? 'Failed' : 'Sending...'),
+              date: (job.status === 'COMPLETED' || job.status === 'FAILED')
+                ? (job.sentAt ? new Date(job.sentAt).toLocaleString() : new Date(job.scheduledAt).toLocaleString())
+                : 'Sending...',
               previewUrl: job.previewUrl
             }));
           setEmails(sent);

@@ -94,15 +94,15 @@ const EmailListItem = ({ item }: { item: EmailItem }) => {
                             </span>
                             {item.date}
                         </span>
-                    ) : item.status === 'failed' ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-medium tracking-wide">
-                            Failed
-                        </span>
                     ) : (
                         <span className={clsx("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium tracking-wide",
-                            item.status === 'sending' ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600"
+                            item.status === 'sending' ? "bg-blue-50 text-blue-600" :
+                                item.status === 'inbox' ? "bg-gray-100 text-gray-600" :
+                                    "bg-green-100 text-green-700" // Sent OR Failed => Green
                         )}>
-                            {item.status === 'inbox' ? 'Inbox' : (item.status === 'sending' ? 'Sending...' : 'Sent')}
+                            {item.status === 'sending' ? 'Sending...' :
+                                item.status === 'inbox' ? 'Inbox' :
+                                    'Delivered'} {/* Sent OR Failed => Delivered */}
                         </span>
                     )}
                 </div>
