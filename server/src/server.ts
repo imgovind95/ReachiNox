@@ -6,7 +6,7 @@ import { config } from './config/env';
 import { redisConnection } from './config/redis';
 import campaignRouter from './api/campaigns';
 import authEndpoints from './api/authentication';
-import './jobs/processor'; // Initialize Background Processor
+import './jobs/EmailProcessor'; // Initialize Background Processor
 
 const apiServer = express();
 

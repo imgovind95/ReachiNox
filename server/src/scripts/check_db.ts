@@ -12,20 +12,18 @@ async function main() {
     }
 
     const jobs = await prisma.emailJob.findMany({
-        where: email ? {
-            recipient: { contains: email, mode: 'insensitive' }
-        } : undefined,
         orderBy: { createdAt: 'desc' },
-        take: 10
+        take: 20,
+        include: { user: true }
     });
 
-    console.log(`Found ${jobs.length} jobs.`);
+    console.log(`Found ${jobs.length} recent jobs.`);
     jobs.forEach(job => {
         console.log(`ID: ${job.id}`);
-        console.log(`  Recipient: ${job.recipient}`);
+        console.log(`  Sender: ${job.user?.email} (${job.user?.name})`);
+        console.log(`  Recipient: '${job.recipient}' (Length: ${job.recipient.length})`);
         console.log(`  Subject: ${job.subject}`);
         console.log(`  Status: ${job.status}`);
-        console.log(`  CreatedAt: ${job.createdAt}`);
         console.log(`  ScheduledAt: ${job.scheduledAt}`);
         console.log(`  SentAt: ${job.sentAt}`);
         console.log('---');
