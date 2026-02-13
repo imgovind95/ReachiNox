@@ -92,6 +92,35 @@ export default function Sidebar() {
     };
   }, [session]);
 
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userImage, setUserImage] = useState('');
+
+  useEffect(() => {
+    if (session?.user) {
+      // Initialize with session data
+      setUserName(session.user.name || '');
+      setUserEmail(session.user.email || '');
+      setUserImage(session.user.image || '');
+
+      // If name is missing or "undefined", fetch it
+      if ((session.user as any).id) {
+        const shouldFetch = !session.user.name || session.user.name === 'undefined';
+        if (shouldFetch) {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/user/${(session.user as any).id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.name) {
+                setUserName(data.name);
+                if (data.avatar) setUserImage(data.avatar);
+              }
+            })
+            .catch(err => console.error("Failed to fetch user details", err));
+        }
+      }
+    }
+  }, [session]);
+
   const navItems = [
     { name: 'Scheduled', icon: Clock, path: '/dashboard/scheduled', count: counts.scheduled },
     { name: 'Sent', icon: Send, path: '/dashboard/sent', count: counts.sent },
@@ -167,20 +196,20 @@ export default function Sidebar() {
           className="bg-white p-3 rounded-xl border border-gray-200 flex items-center justify-between shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3 overflow-hidden">
-            {session?.user?.image ? (
+            {userImage ? (
               <img
-                src={session.user.image}
+                src={userImage}
                 alt="User"
                 className="w-8 h-8 rounded-full"
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold uppercase">
-                {(session?.user?.name?.[0] || session?.user?.email?.[0] || 'U')}
+                {(userName?.[0] || userEmail?.[0] || 'U')}
               </div>
             )}
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-gray-900 truncate">{session?.user?.name || 'User'}</span>
-              <span className="text-xs text-gray-500 truncate">{session?.user?.email || 'user@example.com'}</span>
+              <span className="text-sm font-semibold text-gray-900 truncate">{userName || 'User'}</span>
+              <span className="text-xs text-gray-500 truncate">{userEmail || 'user@example.com'}</span>
             </div>
           </div>
           <ChevronDown size={14} className="text-gray-400" />

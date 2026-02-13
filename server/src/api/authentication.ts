@@ -38,6 +38,23 @@ authRouter.post('/google', async (req, res) => {
     }
 });
 
+authRouter.get('/user/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id }
+        });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json(user);
+    } catch (err: any) {
+        console.error("Fetch User Error:", err.message);
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+});
+
 authRouter.post('/unlink', async (req, res) => {
     const { userId } = req.body;
 
