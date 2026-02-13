@@ -34,20 +34,7 @@ campaignRouter.post('/', async (req: Request<{}, {}, ScheduleEmailRequest>, res:
         if (scheduledAt) {
             targetDate = new Date(scheduledAt);
             const currentTime = new Date();
-            console.log(`[DEBUG] Schedule Request - ScheduledAt: ${scheduledAt}, Target: ${targetDate.toISOString()}, Current: ${currentTime.toISOString()}`);
-
-            if (isNaN(targetDate.getTime())) {
-                return res.status(400).json({ error: "Invalid schedule date format" });
-            }
-
-            executionDelay = targetDate.getTime() - currentTime.getTime();
-            console.log(`[DEBUG] Time Diff: ${executionDelay}ms`);
-
-            if (executionDelay <= 0) {
-                return res.status(400).json({ error: "Scheduled time must be in the future." });
-            }
-        } else {
-            console.log(`[DEBUG] No schedule time provided. Execution delay: 0`);
+            executionDelay = Math.max(0, targetDate.getTime() - currentTime.getTime());
         }
 
         // Persist Job Record
@@ -57,8 +44,8 @@ campaignRouter.post('/', async (req: Request<{}, {}, ScheduleEmailRequest>, res:
                 recipient,
                 subject,
                 body,
-                status: executionDelay > 0 ? 'PENDING' : 'COMPLETED',
-                sentAt: executionDelay > 0 ? undefined : new Date(),
+                status: executionDelay === 0 ? 'COMPLETED' : 'PENDING',
+                sentAt: executionDelay === 0 ? new Date() : undefined,
                 scheduledAt: targetDate,
                 attachments: attachments ? JSON.parse(JSON.stringify(attachments)) : undefined
             }
